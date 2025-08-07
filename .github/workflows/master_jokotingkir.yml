@@ -1,60 +1,110 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy PHP app to Azure Web App - Jokotingkir
+# Laravel deployment to Azure Web App
+name: Deploy Laravel to Azure Web App - Jokotingkir
 
 on:
   push:
-    branches:
-      - master
+    branches: [ main, master ]  # Support both main and master
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql
+        coverage: none
 
-      - name: Check if composer.json exists
-        id: check_files
-        uses: andstor/file-existence-action@v1
-        with:
-          files: 'composer.json'
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      - name: Run composer install if composer.json exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
+    - name: Generate key
+      run: php artisan key:generate
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-app
-          path: .
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Create Database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+
+    - name: Execute tests (Unit and Feature tests) via PHPUnit
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan test --without-tty
+
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v4
+      with:
+        name: php-app
+        path: .
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: php-app
-      
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'Jokotingkir'
-          slot-name: 'Production'
-          package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_31307FC8123F4BC18E9D6E02B8899360 }}
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4
+      with:
+        name: php-app
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+
+    - name: Install Production Dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Create .env file for production
+      run: |
+        echo "APP_NAME=Jokotingkir" > .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env
+        echo "APP_DEBUG=false" >> .env
+        echo "APP_URL=https://jokotingkir-dshcagcgb4fnb2dw.canadacentral-01.azurewebsites.net" >> .env
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=your-mysql-server.mysql.database.azure.com" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=your_database_name" >> .env
+        echo "DB_USERNAME=your_username" >> .env
+        echo "DB_PASSWORD=your_password" >> .env
+        echo "SESSION_DRIVER=database" >> .env
+        echo "CACHE_STORE=database" >> .env
+        echo "QUEUE_CONNECTION=database" >> .env
+        echo "LOG_CHANNEL=stack" >> .env
+        echo "LOG_LEVEL=error" >> .env
+        echo "APP_LOCALE=en" >> .env
+        echo "APP_FALLBACK_LOCALE=en" >> .env
+
+    - name: Generate Application Key
+      run: php artisan key:generate
+
+    - name: Optimize Laravel
+      run: |
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+
+    - name: Run Database Migration
+      run: php artisan migrate --force
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'jokotingkir-dshcagcgb4fnb2dw'  # Nama lengkap yang benar
+        slot-name: 'Production'
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_31307FC8123F4BC18E9D6E02B8899360 }}
+        package: .
