@@ -1,0 +1,97 @@
+@extends('layout/app')
+
+@section('content')
+    <!-- Page Heading -->
+    <h1 class="h3 mb-4 text-gray-800">
+        <i class="fas fa-user mr-2"></i>
+        {{ $title }}
+    </h1>
+
+    <div class="card">
+        <div class="card-header d-flex flex-wrap justify-content-center
+        justify-content-xl-between">
+            <div class="mb-1 mr-2">
+                <a href="{{ route('userCreate') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah Data</a>
+            </div>
+            <div>
+                <a href="{{ route ('userExcel') }}" class="btn btn-sm btn-success">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    Excel</a>
+
+                <a href="{{ route ('userPdf') }}" class="btn btn-sm btn-danger" target='__blank'>
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    PDF</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="bg-primary text-white">
+                        <tr class="text-center">
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Jabatan</th>
+                            <th>
+                                <i class="fas fa-cog"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($user as $item)
+                            <tr>
+                                <td class="text-center">
+                                    {{ $loop->iteration }}
+                                </td>
+                                <td>{{ $item->nama }}</td>
+
+                                <td class="text-center">
+                                    <span class="badge badge-primary">
+                                        {{ $item->email }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @switch($item->jabatan)
+                                        @case('admin')
+                                            <span class="badge badge-dark">admin</span>
+                                        @break
+
+                                        @case('rektorat')
+                                            <span class="badge badge-success">rektorat</span>
+                                        @break
+
+                                        @case('fakultas')
+                                            <span class="badge badge-info">fakultas</span>
+                                        @break
+
+                                        @case('Dosen')
+                                            <span class="badge badge-primaary">Dosen</span>
+                                        @break
+
+                                        @case('Prodi')
+                                            <span class="badge badge-secondary">Prodi</span>
+                                        @break
+
+                                        @default
+                                            <span class="badge badge-secondary">{{ $item->jabatan }}</span>
+                                    @endswitch
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('userEdit', $item->id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#exampleModal{{ $item->id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    @include('admin/user/modal')
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+@endsection

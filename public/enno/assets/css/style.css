@@ -1,0 +1,315 @@
+.btn-login-custom {
+  background-color: #084298;
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(8, 66, 152, 0.25);
+  transition: all 0.3s ease;
+}
+.btn-login-custom:hover {
+  background: #052c65;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(13, 110, 253, 0.45);
+}
+
+.btn-login-custom:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 10px rgba(86, 143, 230, 0.25);
+}
+
+.btn-login-custom i {
+  font-size: 18px;
+}
+
+
+/* Tombol Login default (outline biru) */
+.login-btn {
+    background-color: transparent;
+    color: #084298;
+    border: 2px solid #084298;
+    padding: 4px 14px; /* lebih kecil, ramping */
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease-in-out;
+    text-decoration: none;
+    display: inline-block;
+}
+/* Hover efek login sebelum scroll */
+.login-btn:hover {
+    background-color: #084298;
+    color: #fff;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(8, 66, 152, 0.4);
+}
+
+/* Saat tombol aktif diklik */
+.login-btn:active {
+    background-color: #052c65;
+    color: #fff;
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+}
+
+.login-btn-center {
+    background-color: transparent;
+    color: #084298;
+    border: 2px solid #084298;
+    padding: 10px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease-in-out;
+    text-decoration: none;
+    display: inline-block;
+}
+/* Hover efek login sebelum scroll */
+.login-btn-center:hover {
+    background-color: #084298;
+    color: #fff;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(8, 66, 152, 0.4);
+}
+
+/* Saat tombol aktif diklik */
+.login-btn-center:active {
+    background-color: #052c65;
+    color: #fff;
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+}
+
+/* Header default (putih) */
+#header {
+    background: linear-gradient(to right, #ffffff, #ffffff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Header saat scroll (biru soft) */
+#header.scrolled {
+    background: linear-gradient(to right, #0a4783, #115786);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Menu navigasi default */
+#header .navmenu a {
+    color: #084298 !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Menu aktif sebelum scroll */
+#header .navmenu a.active {
+    color: #011585 !important;
+    font-weight: 600;
+}
+
+/* Menu saat scroll */
+#header.scrolled .navmenu a {
+    color: #093164 !important;
+}
+
+#header.scrolled .navmenu a.active {
+    color: #2c8fe0 !important;
+    font-weight: 700 !important;
+}
+
+/* Tombol login saat scroll (jadi putih solid, teks biru) */
+#header.scrolled .login-btn {
+    background-color: #ffffff;
+    color: #084298;
+    border: 2px solid #ffffff;
+}
+
+#header.scrolled .login-btn:hover {
+    background-color: #85b5f3;
+    color: #084298;
+}
+
+/* Tulisan "U-CIC Luaran" */
+#header .sitename {
+    color: #084298 !important;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+#header.scrolled .sitename {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+
+/* Buat kotak-kotak semuanya */
+.icon-blue {
+    background-color: #0d6efd; /* atau #084298 untuk biru UCIC */
+    color: #fff;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 28px;
+    margin: 0 auto 20px auto;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.service-item:hover .icon-blue {
+    background-color: #084298; /* lebih gelap saat hover */
+    transform: scale(1.05);
+}
+
+.section-divider {
+  border: 0;
+  height: 4px;
+  background: #1a6ba1; /* biru muda */
+  margin: 0 40px 40px 40px;
+}
+
+/* Ubah latar belakang box testimoni jadi putih */
+.testimonial-item {
+  background-color: #ffffff !important; /* putih bersih */
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05); /* bayangan lembut */
+  transition: all 0.3s ease-in-out;
+}
+
+.testimonial-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.testimonials.section {
+  background-color: #ffffff !important;
+}
+
+
+/* Tambahkan ke style.css atau dalam tag <style> */
+
+/* Tambahan Perbaikan Mobile Menu (Offcanvas / Dropdown) */
+.navmenu-active,
+.offcanvas {
+  background-color: #2b3a67 !important;
+  color: #fff !important;
+}
+
+.navmenu-active a,
+.offcanvas a {
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.navmenu-active a:hover,
+.offcanvas a:hover {
+  color: #ffc107 !important;
+}
+
+/* 1. RESPONSIF UNTUK NAVBAR DAN LOGO */
+@media (max-width: 576px) {
+  .header .logo img {
+    height: 28px;
+  }
+   #header .logo {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .header .sitename {
+    font-size: 1rem;
+    margin-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .login-btn {
+    margin-left: auto !important;
+    margin-right: 10px !important;
+    padding: 6px 18px;
+    font-size: 14px;
+  }
+}
+
+/* 2. RESPONSIF BAGIAN HERO */
+@media (max-width: 768px) {
+  #hero h1 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  #hero p {
+    font-size: 1rem;
+    text-align: center;
+  }
+  #hero .d-flex {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-img img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Tambahan opsional agar login turun ke baris baru jika terlalu sempit */
+@media (max-width: 420px) {
+    .login-btn {
+      margin-top: 8px;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+
+    #header .container-xl {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+}
+
+
+/* 3. SECTION UMUM RESPONSIF */
+@media (max-width: 768px) {
+  .section-title h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  .section-title p {
+    font-size: 0.95rem;
+  }
+}
+
+/* 4. KONTAK RESPONSIF */
+@media (max-width: 768px) {
+  .info-wrap {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 20px;
+  }
+  .info-wrap .d-flex {
+    justify-content: center;
+  }
+}
+
+/* 5. FOOTER TULISAN RESPONSIF */
+@media (max-width: 576px) {
+  .footer .footer-top {
+    text-align: center;
+  }
+  .footer .footer-top .social-links {
+    justify-content: center;
+  }
+}
+
+
+
+
+

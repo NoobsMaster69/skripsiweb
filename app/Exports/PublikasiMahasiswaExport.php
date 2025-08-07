@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Exports;
+
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
+class PublikasiMahasiswaExport implements FromCollection, WithHeadings, WithMapping, WithEvents
+{
+    protected $data;
+    protected $no = 1;
+
+    public function __construct($data)
+    {
+        $this->data = $data;
+    }
+
+    public function collection()
+    {
+        return $this->data;
+    }
+
+    public function headings(): array
+    {
+        return [
+            ['LAPORAN PUBLIKASI MAHASISWA'],
+            ['Universitas Catur Insan Cendekia'],
+            ['Tanggal Cetak: ' . now()->format('d M Y')],
+            [],
+            [
+                'No', 'Nama Mahasiswa', 'NIM', 'Program Studi', 'Fakultas', 'Tahun',
+                'Judul Karya', 'Jenis Publikasi', 'Kegiatan', 'Tanggal Perolehan', 'Lampiran'
+            ]
+        ];
+    }
+
+    public function map($item): array
+    {
+        return [
+            $this->no++,
+            $item->nm_mhs,
+            $item->nim,
+            $item->prodi,
+            $item->fakultas,
+            $item->tahun,
+            $item->judul_karya,
+            ucwords(str_replace('_', ' ', $item->jenis_publikasi)),
+            $item->kegiatan,
+            \Carbon\Carbon::parse($item->tanggal_perolehan)->format('d-m-Y'),
+            $item->file_upload ? 'Ada' : 'Tidak Ada',
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                // Merge judul
+                $event->sheet->mergeCells('A1:K1');
+                $event->sheet->mergeCells('A2:K2');
+                $event->sheet->mergeCells('A3:K3');
+
+                // Judul besar
+                $event->sheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 14],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Subjudul
+                $event->sheet->getStyle('A2')->applyFromArray([
+                    'font' => ['italic' => true],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Tanggal
+                $event->sheet->getStyle('A3')->applyFromArray([
+                    'font' => ['size' => 10],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Header kolom
+                $event->sheet->getStyle('A5:K5')->applyFromArray([
+                    'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['argb' => 'FF4472C4'], // Biru UCIC
+                    ],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+
+                // Auto width semua kolom
+                foreach (range('A', 'K') as $col) {
+                    $event->sheet->getColumnDimension($col)->setAutoSize(true);
+                }
+            }
+        ];
+    }
+}
