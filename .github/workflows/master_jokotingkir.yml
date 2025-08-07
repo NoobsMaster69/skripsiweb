@@ -76,11 +76,11 @@ jobs:
         echo "APP_DEBUG=false" >> .env
         echo "APP_URL=https://jokotingkir-dshcagcgb4fnb2dw.canadacentral-01.azurewebsites.net" >> .env
         echo "DB_CONNECTION=mysql" >> .env
-        echo "DB_HOST=your-mysql-server.mysql.database.azure.com" >> .env
-        echo "DB_PORT=3306" >> .env
-        echo "DB_DATABASE=your_database_name" >> .env
-        echo "DB_USERNAME=your_username" >> .env
-        echo "DB_PASSWORD=your_password" >> .env
+        echo "DB_HOST=\${AZURE_MYSQL_HOST}" >> .env
+        echo "DB_PORT=\${AZURE_MYSQL_PORT}" >> .env
+        echo "DB_DATABASE=\${AZURE_MYSQL_DBNAME}" >> .env
+        echo "DB_USERNAME=\${AZURE_MYSQL_USERNAME}" >> .env
+        echo "DB_PASSWORD=\${AZURE_MYSQL_PASSWORD}" >> .env
         echo "SESSION_DRIVER=database" >> .env
         echo "CACHE_STORE=database" >> .env
         echo "QUEUE_CONNECTION=database" >> .env
@@ -92,10 +92,17 @@ jobs:
     - name: Generate Application Key
       run: php artisan key:generate
 
-    - name: Optimize Laravel
+    - name: Clear Laravel Cache
+      run: |
+        php artisan config:clear
+        php artisan route:clear
+        php artisan view:clear
+        php artisan cache:clear
+
+    - name: Optimize Laravel (without route cache)
       run: |
         php artisan config:cache
-        php artisan route:cache
+        # php artisan route:cache  # Disabled temporarily due to route conflict
         php artisan view:cache
 
     - name: Run Database Migration
@@ -104,7 +111,7 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'jokotingkir-dshcagcgb4fnb2dw'  # Nama lengkap yang benar
+        app-name: 'jokotingkir-dshcagcgb4fnb2dw'
         slot-name: 'Production'
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_31307FC8123F4BC18E9D6E02B8899360 }}
         package: .
