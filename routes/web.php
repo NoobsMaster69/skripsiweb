@@ -1052,7 +1052,6 @@ Route::middleware('checkLogin')->group(
 
         Route::get('/rekognisi/export-pdf', [RekognisiDosenController::class, 'exportPdf'])->name('dosen.rekognisi.export-pdf');
         Route::delete('/dosen/rekognisi/{id}', [RekognisiDosenController::class, 'destroy'])->name('dosen.rekognisi.destroy');
-        Route::delete('/dosen/rekognisi/{id}', [RekognisiDosenController::class, 'destroy'])->name('dosen.rekognisi.destroy');
 
 
 
