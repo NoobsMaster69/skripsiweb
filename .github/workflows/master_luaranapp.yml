@@ -1,6 +1,5 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy PHP app to Azure Web App - LuaranApp
 
 on:
@@ -13,27 +12,141 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
-
+      contents: read
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-
-      - name: Check if composer.json exists
-        id: check_files
-        uses: andstor/file-existence-action@v1
+          extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql, curl, zip
+          tools: composer:v2
+          
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+        
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
         with:
-          files: 'composer.json'
-
-      - name: Run composer install if composer.json exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
-
-
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+            
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+        
+      - name: Create production environment file
+        run: |
+          cat > .env << 'EOF'
+          APP_NAME=LuaranApp
+          APP_ENV=production
+          APP_KEY=
+          APP_DEBUG=false
+          APP_TIMEZONE=UTC
+          APP_URL=https://luaranapp-b6ftembfh3hae0hs.canadacentral-01.azurewebsites.net
+          
+          APP_LOCALE=en
+          APP_FALLBACK_LOCALE=en
+          APP_FAKER_LOCALE=en_US
+          APP_MAINTENANCE_DRIVER=file
+          
+          BCRYPT_ROUNDS=12
+          
+          LOG_CHANNEL=stack
+          LOG_STACK=single
+          LOG_DEPRECATIONS_CHANNEL=null
+          LOG_LEVEL=error
+          
+          DB_CONNECTION=mysql
+          DB_HOST=luaran-server.mysql.database.azure.com
+          DB_PORT=3306
+          DB_DATABASE=luaran-database
+          DB_USERNAME=flyxgjjhb
+          DB_PASSWORD=$cAuhFyLzTk$OM2
+          
+          SESSION_DRIVER=database
+          SESSION_LIFETIME=120
+          SESSION_ENCRYPT=false
+          SESSION_PATH=/
+          SESSION_DOMAIN=null
+          
+          BROADCAST_CONNECTION=log
+          FILESYSTEM_DISK=local
+          QUEUE_CONNECTION=database
+          
+          CACHE_STORE=database
+          CACHE_PREFIX=
+          
+          MAIL_MAILER=log
+          MAIL_HOST=127.0.0.1
+          MAIL_PORT=2525
+          MAIL_USERNAME=null
+          MAIL_PASSWORD=null
+          MAIL_ENCRYPTION=null
+          MAIL_FROM_ADDRESS="hello@luaranapp.com"
+          MAIL_FROM_NAME="${APP_NAME}"
+          
+          AWS_ACCESS_KEY_ID=
+          AWS_SECRET_ACCESS_KEY=
+          AWS_DEFAULT_REGION=us-east-1
+          AWS_BUCKET=
+          AWS_USE_PATH_STYLE_ENDPOINT=false
+          
+          VITE_APP_NAME="${APP_NAME}"
+          EOF
+          
+      - name: Generate application key
+        run: php artisan key:generate
+        
+      - name: Directory permissions
+        run: chmod -R 755 storage bootstrap/cache
+        
+      - name: Create optimized configuration cache
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan event:cache
+          
+      - name: Create web.config for Azure App Service
+        run: |
+          cat > web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <rewrite>
+                <rules>
+                  <rule name="Imported Rule 1" stopProcessing="true">
+                    <match url="^(.*)/$" ignoreCase="false" />
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                    </conditions>
+                    <action type="Redirect" redirectType="Permanent" url="/{R:1}" />
+                  </rule>
+                  <rule name="Imported Rule 2" stopProcessing="true">
+                    <match url="^" ignoreCase="false" />
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="public/index.php" />
+                  </rule>
+                </rules>
+              </rewrite>
+              <defaultDocument>
+                <files>
+                  <clear />
+                  <add value="public/index.php" />
+                  <add value="index.php" />
+                </files>
+              </defaultDocument>
+            </system.webServer>
+          </configuration>
+          EOF
+          
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -44,9 +157,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
+      id-token: write
+      contents: read
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -59,7 +171,7 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2F0C83C80DCD4ED38E14D586E65705AA }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9CAAB9BA4BB24D76A715812C4B532BC9 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_04CD588BC5F740D2BFCD64C01D566CD1 }}
-
+          
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
