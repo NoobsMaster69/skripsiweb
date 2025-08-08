@@ -1,4 +1,3 @@
-# Temporary version - skip route cache to avoid conflicts
 name: Build and deploy PHP app to Azure Web App - LuaranApp
 
 on:
@@ -12,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -19,7 +19,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql, curl, zip
+          extensions: mbstring, xml, ctype, json, bcmath, pdo, mysql, curl, zip, gd, fileinfo
           tools: composer:v2
           
       - name: Install dependencies
@@ -41,10 +41,15 @@ jobs:
           DB_HOST=luaran-server.mysql.database.azure.com
           DB_PORT=3306
           DB_DATABASE=luaran-database
-          DB_USERNAME=flyxgjjhb
-          DB_PASSWORD=$cAuhFyLzTk$OM2
+          DB_USERNAME=flyxgjjjhb
+          DB_PASSWORD=$cAuhfFyLzTk$OM2
           
           SESSION_DRIVER=database
+          SESSION_LIFETIME=120
+          SESSION_ENCRYPT=false
+          SESSION_PATH=/
+          SESSION_DOMAIN=null
+          
           CACHE_STORE=database
           QUEUE_CONNECTION=database
           
@@ -56,14 +61,83 @@ jobs:
       - name: Generate application key
         run: php artisan key:generate
         
-      - name: Directory permissions
-        run: chmod -R 755 storage bootstrap/cache
+      - name: Create storage directories and set permissions
+        run: |
+          mkdir -p storage/logs
+          mkdir -p storage/framework/cache/data
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/app/public
+          chmod -R 775 storage
+          chmod -R 775 bootstrap/cache
+          
+      - name: Create symbolic link for storage
+        run: php artisan storage:link
         
-      - name: Basic optimization only
+      - name: Fix public/index.php file
+        run: |
+          cat > public/index.php << 'EOF'
+          <?php
+          
+          use Illuminate\Contracts\Http\Kernel;
+          use Illuminate\Http\Request;
+          
+          define('LARAVEL_START', microtime(true));
+          
+          if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+              require $maintenance;
+          }
+          
+          require __DIR__.'/../vendor/autoload.php';
+          
+          $app = require_once __DIR__.'/../bootstrap/app.php';
+          
+          $kernel = $app->make(Kernel::class);
+          
+          $response = $kernel->handle(
+              $request = Request::capture()
+          )->send();
+          
+          $kernel->terminate($request, $response);
+          EOF
+        
+      - name: Run database migrations
+        run: php artisan migrate --force
+        
+      - name: Basic optimization
         run: |
           php artisan config:cache
           php artisan view:cache
-          # Skip route:cache and event:cache to avoid conflicts
+          # Skip route:cache untuk menghindari konflik
+          
+      - name: Create web.config for Azure
+        run: |
+          cat > web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <rewrite>
+                <rules>
+                  <rule name="Imported Rule 1" stopProcessing="true">
+                    <match url="^(.*)/$" ignoreCase="false" />
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                    </conditions>
+                    <action type="Redirect" redirectType="Permanent" url="/{R:1}" />
+                  </rule>
+                  <rule name="Imported Rule 2" stopProcessing="true">
+                    <match url="^" ignoreCase="false" />
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="public/index.php" />
+                  </rule>
+                </rules>
+              </rewrite>
+            </system.webServer>
+          </configuration>
+          EOF
           
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -77,6 +151,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
