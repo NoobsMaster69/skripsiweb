@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('rekognisi_dosen', function (Blueprint $table) {
             $table->id();
@@ -18,23 +15,17 @@ return new class extends Migration
             $table->string('prodi');
             $table->string('bidang_rekognisi');
             $table->year('tahun_akademik');
-            $table->string('fakultas')->nullable()->after('prodi');
+            $table->string('fakultas')->nullable(); // <- tanpa after()
             $table->date('tanggal_rekognisi')->nullable();
             $table->text('deskripsi')->nullable();
-            $table->enum('status', ['menunggu', 'terverifikasi', 'ditolak']);
+            $table->enum('status', ['menunggu', 'terverifikasi', 'ditolak'])->default('menunggu');
             $table->string('file_bukti')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('rekognisi_dosen', function (Blueprint $table) {
-        $table->dropColumn('fakultas');
-    });
-
+        Schema::dropIfExists('rekognisi_dosen'); // <- karena kita CREATE table di up()
     }
 };
